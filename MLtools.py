@@ -1,16 +1,35 @@
 ##### More elaborate code to get results for classification #####
 ##### Includes plotting diagnostics #####
 
-def measure(clf_class, parameters, name, data_frame, data_size=None, plot=True, verbose=False):
+import numpy as np
+from matplotlib import pyplot
+from sklearn.metrics import classification_report
+from sklearn.metrics import precision_recall_curve, roc_curve, auc
+from sklearn.cross_validation import KFold
+from sklearn import neighbors
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import classification_report
+from sklearn.linear_model import LogisticRegression
+from sklearn.cross_validation import KFold
+from sklearn import cross_validation
+from sklearn.cross_validation import train_test_split
+from sklearn.feature_selection import RFECV
+from sklearn.svm import LinearSVC
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from RichertUtils import *      #need to import the plot utility functions from Richert
+
+def measure(clf_class, parameters, name, X, Y, data_size=None, plot=True, verbose=False):
 
     if data_size is None:
-        X = data_frame.iloc[:, 12:]    #need to check this number when working on different datasets; corresponds to metadata columns
-        Y = data_frame['labels']
+        X = X    
+        Y = Y
     else:
-        X = data_frame.iloc[:, 12:][:data_size]
-        Y = data_frame['labels'][:data_size]
+        X = X[:data_size]
+        Y = Y[:data_size]
 
-    cv = KFold(n=len(X), n_folds=10) #Indices=True 
+    cv = KFold(n=len(X), n_folds=3) #Indices=True 
 
     train_errors = []
     test_errors = []
@@ -82,19 +101,19 @@ def measure(clf_class, parameters, name, data_frame, data_size=None, plot=True, 
 
     return np.mean(train_errors), np.mean(test_errors)
 
-def bias_variance_analysis(clf_class, parameters, name, data_frame, data_sizes, verbose=False):
+def bias_variance_analysis(clf_class, parameters, name, X, Y, data_sizes, verbose=False):
     
     train_errors = []
     test_errors = []
 
     for data_size in data_sizes:
         train_error, test_error = measure(
-            clf_class, parameters, name, data_frame, data_size, verbose)
+            clf_class, parameters, name, X, Y, data_size, verbose)
         train_errors.append(train_error)
         test_errors.append(test_error)
     return train_errors, test_errors
 
-def k_complexity_analysis(clf_class, parameters, data_frame, ks, data_size, verbose=False):
+def k_complexity_analysis(clf_class, parameters, X, Y, ks, data_size, verbose=False):
     
     train_errors = []
     test_errors = []
@@ -102,7 +121,7 @@ def k_complexity_analysis(clf_class, parameters, data_frame, ks, data_size, verb
     for k in ks:
         parameters['n_neighbors'] = k
         train_error, test_error = measure(
-            clf_class, parameters, "%dNN" % k, data_frame, data_size)
+            clf_class, parameters, "%dNN" % k, X, Y, data_size)
         train_errors.append(train_error)
         test_errors.append(test_error)
 
